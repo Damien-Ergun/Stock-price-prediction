@@ -1,0 +1,135 @@
+# Requirements and dependencies:
+
+## Load libraries
+
+```{r}
+#"quantmod", "tseries", "forecast", "ggplot2", "plotly", "dplyr", "lubridate", "zoo", "xts", "tidyverse"
+
+library(quantmod)
+library(tseries)
+library(forecast)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(lubridate)
+library(zoo)
+library(xts)
+library(tidyverse)
+library(psych)
+library(tseries)
+
+
+
+```
+## Import data
+
+```{r}
+
+# Import data
+
+
+start_date <- "2000-01-01"
+end_date <- Sys.Date()
+
+tryCatch(
+  {
+    getSymbols("^GSPC", from = start_date, to = end_date, src = "yahoo")
+  },
+  error = function(e) {
+    print(paste("Error: ", e$message))
+  }
+)
+
+sp500_data <- Cl(GSPC)
+sp500_dates <- index(GSPC)
+```
+```{r}
+# 1. View the first few rows of the dataset
+head(sp500_data)
+
+# 2. View the last few rows of the dataset
+tail(sp500_data)
+
+# 3. Summary of the dataset
+summary(sp500_data)
+
+# 4. Structure of the dataset
+str(sp500_data)
+
+# 5. Basic statistics
+summary(sp500_data)
+
+# 6. Checking for missing values
+sum(is.na(sp500_data))
+
+# 7. Describe the dataset
+describe(sp500_data)
+
+# 7. Basic plot of the time series
+library(ggplot2)
+ggplot(data = as.data.frame(sp500_data), aes(x = index(sp500_data), y = sp500_data)) + 
+    geom_line() + 
+    xlab("Date") + 
+    ylab("Closing Price") +
+    ggtitle("S&P 500 Closing Prices Over Time")
+
+```
+
+
+## Data preprocessing
+
+
+```{r}
+sp500_close <- as.numeric(sp500_data[, 1])  # Assuming the first column is the closing price
+sp500_ts <- ts(sp500_close, frequency = 252)
+
+```
+
+```{r}
+
+sp500_decomposed <- stl(sp500_ts, s.window = "periodic")
+plot(sp500_decomposed)
+
+
+```
+```{r}
+library(mFilter)
+hp_trend <- hpfilter(sp500_ts, freq = 1600)$trend  # freq = 1600 is often used for monthly data; adjust as needed
+plot(hp_trend, main = "Trend Component Using Hodrick-Prescott Filter")
+
+```
+
+```{r}
+library(tseries)
+adf_test <- adf.test(sp500_ts, alternative = "stationary")
+print(adf_test)
+
+```
+```{r}
+sp500_diff1 <- diff(sp500_ts, differences = 1)
+adf_test_diff1 <- adf.test(sp500_diff1, alternative = "stationary")
+print(adf_test_diff1)
+
+```
+```{r}
+sp500_diff2 <- diff(sp500_diff1, differences = 1)
+adf_test_diff2 <- adf.test(sp500_diff2, alternative = "stationary")
+print(adf_test_diff2)
+
+```
+
+
+```{r}
+plot(sp500_diff1, main = "First Order Differenced Series")
+# If you did a second differencing, also plot that
+plot(sp500_diff2, main = "Second Order Differenced Series")
+
+```
+
+
+```{r}
+acf(sp500_diff1, main = "ACF for S&P 500")
+pacf(sp500_diff1, main = "PACF for S&P 500")
+
+```
+

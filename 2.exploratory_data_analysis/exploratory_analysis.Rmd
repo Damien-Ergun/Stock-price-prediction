@@ -1,0 +1,245 @@
+---
+title: "Exploratory Analysis"
+output: html_notebook
+---
+
+# EDA
+## Import libraries
+
+```{r}
+
+library(quantmod)
+library(tseries)
+library(forecast)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(lubridate)
+library(zoo)
+library(xts)
+library(tidyverse)
+library(psych)
+library(tseries)
+
+
+```
+
+## Import Data
+
+
+```{r}
+# Import data
+
+
+start_date <- "2000-01-01"
+end_date <- Sys.Date()
+
+tryCatch(
+  {
+    getSymbols("^GSPC", from = start_date, to = end_date, src = "yahoo")
+  },
+  error = function(e) {
+    print(paste("Error: ", e$message))
+  }
+)
+
+sp500_data <- Cl(GSPC)
+sp500_dates <- index(GSPC)
+```
+
+## Display the time serie 
+
+
+```{r}
+
+# 1. View the first few rows of the dataset
+head(sp500_data)
+
+# 2. View the last few rows of the dataset
+tail(sp500_data)
+
+# 3. Summary of the dataset
+summary(sp500_data)
+
+# 4. Structure of the dataset
+str(sp500_data)
+
+# 5. Basic statistics
+summary(sp500_data)
+
+# 6. Checking for missing values
+sum(is.na(sp500_data))
+
+# 7. Describe the dataset
+describe(sp500_data)
+
+# 7. Basic plot of the time series
+library(ggplot2)
+ggplot(data = as.data.frame(sp500_data), aes(x = index(sp500_data), y = sp500_data)) + 
+    geom_line() + 
+    xlab("Date") + 
+    ylab("Closing Price") +
+    ggtitle("S&P 500 Closing Prices Over Time")
+```
+
+```{r}
+# Zoom into a specific year, e.g., 2008 (the financial crisis)
+sp500_2008 <- window(sp500_data, start=as.Date("2007-01-01"), end=as.Date("2009-12-31"))
+ggplot(as.data.frame(sp500_2008), aes(x = index(sp500_2008), y = sp500_2008)) +
+    geom_line() + 
+    xlab("Date") + 
+    ylab("Closing Price") +
+    ggtitle("S&P 500 Closing Prices in 2008")
+
+
+```
+
+```{r}
+
+ggplot(data = as.data.frame(sp500_data), aes(x = index(sp500_data), y = sp500_data)) + 
+    geom_line(color = "blue") + 
+    xlab("Date") + 
+    ylab("Closing Price") +
+    ggtitle("S&P 500 Closing Prices Over Time")
+
+```
+
+```{r}
+# Ensure the 'zoo' package is loaded for rollapply
+library(zoo)
+
+# Calculating 50-day and 200-day moving averages with proper length matching
+sp500_data$MA50 <- rollapply(sp500_data, width = 50, FUN = mean, by.column = TRUE, fill = NA, align = "right")
+sp500_data$MA200 <- rollapply(sp500_data, width = 200, FUN = mean, by.column = TRUE, fill = NA, align = "right")
+
+# Convert the data to a data frame for ggplot
+sp500_df <- as.data.frame(sp500_data)
+sp500_df$Date <- index(sp500_data)
+
+# Plot with moving averages
+ggplot(sp500_df, aes(x = Date)) + 
+    geom_line(aes(y = GSPC.Close, color = "Closing Price"), size = 1) +
+    geom_line(aes(y = MA50, color = "50-day MA"), size = 1, na.rm = TRUE) +
+    geom_line(aes(y = MA200, color = "200-day MA"), size = 1, na.rm = TRUE) +
+    scale_color_manual(values = c("Closing Price" = "blue", "50-day MA" = "red", "200-day MA" = "green")) +
+    xlab("Date") + 
+    ylab("Price") +
+    ggtitle("S&P 500 with 50-day and 200-day Moving Averages") +
+    theme_minimal()
+
+
+
+
+
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Example: Comparing two specific years
+sp500_2020 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2020")
+sp500_2019 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2019")
+sp500_2018 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2018")
+sp500_2017 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2017")
+sp500_2016 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2016")
+sp500_2015 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2015")
+sp500_2014 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2014")
+sp500_2013 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2013")
+sp500_2012 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2012")
+sp500_2011 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2011")
+sp500_2010 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2010")
+sp500_2009 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2009")
+sp500_2008 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2008")
+sp500_2007 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2007")
+sp500_2006 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2006")
+sp500_2005 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2005")
+sp500_2004 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2004")
+sp500_2003 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2003")
+sp500_2002 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2002")
+sp500_2001 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2001")
+sp500_2000 <- filter(as.data.frame(sp500_data), format(index(sp500_data), "%Y") == "2000")
+
+# Plotting the two years side-by-side
+# Combined ggplot for all years from 2000 to 2020
+ggplot() +
+  geom_line(data = sp500_2000, aes(x = index(sp500_2000), y = GSPC.Close, color = "2000")) +
+  geom_line(data = sp500_2001, aes(x = index(sp500_2001), y = GSPC.Close, color = "2001")) +
+  geom_line(data = sp500_2002, aes(x = index(sp500_2002), y = GSPC.Close, color = "2002")) +
+  geom_line(data = sp500_2003, aes(x = index(sp500_2003), y = GSPC.Close, color = "2003")) +
+  geom_line(data = sp500_2004, aes(x = index(sp500_2004), y = GSPC.Close, color = "2004")) +
+  geom_line(data = sp500_2005, aes(x = index(sp500_2005), y = GSPC.Close, color = "2005")) +
+  geom_line(data = sp500_2006, aes(x = index(sp500_2006), y = GSPC.Close, color = "2006")) +
+  geom_line(data = sp500_2007, aes(x = index(sp500_2007), y = GSPC.Close, color = "2007")) +
+  geom_line(data = sp500_2008, aes(x = index(sp500_2008), y = GSPC.Close, color = "2008")) +
+  geom_line(data = sp500_2009, aes(x = index(sp500_2009), y = GSPC.Close, color = "2009")) +
+  geom_line(data = sp500_2010, aes(x = index(sp500_2010), y = GSPC.Close, color = "2010")) +
+  geom_line(data = sp500_2011, aes(x = index(sp500_2011), y = GSPC.Close, color = "2011")) +
+  geom_line(data = sp500_2012, aes(x = index(sp500_2012), y = GSPC.Close, color = "2012")) +
+  geom_line(data = sp500_2013, aes(x = index(sp500_2013), y = GSPC.Close, color = "2013")) +
+  geom_line(data = sp500_2014, aes(x = index(sp500_2014), y = GSPC.Close, color = "2014")) +
+  geom_line(data = sp500_2015, aes(x = index(sp500_2015), y = GSPC.Close, color = "2015")) +
+  geom_line(data = sp500_2016, aes(x = index(sp500_2016), y = GSPC.Close, color = "2016")) +
+  geom_line(data = sp500_2017, aes(x = index(sp500_2017), y = GSPC.Close, color = "2017")) +
+  geom_line(data = sp500_2018, aes(x = index(sp500_2018), y = GSPC.Close, color = "2018")) +
+  geom_line(data = sp500_2019, aes(x = index(sp500_2019), y = GSPC.Close, color = "2019")) +
+  geom_line(data = sp500_2020, aes(x = index(sp500_2020), y = GSPC.Close, color = "2020")) +
+  labs(x = "Date", y = "Closing Price", title = "S&P 500 Closing Prices: 2000 - 2020") +
+  scale_color_manual(values = rainbow(21)) +  # 21 years in total
+  theme_minimal()
+
+
+```
+```{r}
+## deleting the MA50 and MA200 columns
+sp500_data <- sp500_data[, -c(2, 3,4)]
+```
+
+```{r}
+library(forecast)
+sp500_close <- as.numeric(sp500_data[, 1])  # Assuming the first column is the closing price
+sp500_ts <- ts(sp500_close, frequency = 252)
+
+# Plotting the time series
+sp500_decomposed <- stl(sp500_ts, s.window = "periodic")
+plot(sp500_decomposed)
+
+```
+
+```{r}
+# Creating a season plot
+seasonplot(sp500_ts, year.labels = TRUE, col = rainbow(length(unique(floor(time(sp500_ts))))))
+
+```
+```{r}
+library(quantmod)
+
+# Calculate daily returns
+sp500_returns <- dailyReturn(sp500_data)
+
+```
+
+```{r}
+# Calculating 21-day rolling standard deviation
+rolling_volatility <- rollapply(sp500_returns, width = 21, FUN = sd, by.column = TRUE, fill = NA, align = 'right')
+
+```
+
+```{r}
+# Adding rolling volatility to the data frame
+sp500_data$RollingVolatility <- rolling_volatility
+
+# Convert to a data frame for ggplot
+sp500_df <- as.data.frame(sp500_data)
+sp500_df$Date <- index(sp500_data)
+
+# Plotting the rolling volatility
+ggplot(sp500_df, aes(x = Date, y = RollingVolatility)) +
+    geom_line(color = "blue") +
+    xlab("Date") + 
+    ylab("Rolling Volatility (21-day SD of Returns)") +
+    ggtitle("21-Day Rolling Volatility of the S&P 500") +
+    theme_minimal()
+
+```
+
+
